@@ -6,7 +6,7 @@ Esta práctica se ha realizado bajo el contexto de la asignatura Tipología y ci
 
 ## Miembros del equipo
 
-La actividad ha sido realizada de manera coordinada por César Irnán Sillero y Lissette Muñoz Guillén.
+La actividad ha sido realizada de manera coordinada por César Irnán Sillero y Lissette.
 
 ## Ficheros del código fuente
 
