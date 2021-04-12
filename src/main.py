@@ -1,12 +1,17 @@
+from time import sleep
+
 import pandas as pd
 import requests
 import json
 import re
 
+
 from pandas import json_normalize
 from selectorlib import Extractor
+from timeit import default_timer as timer
+from datetime import timedelta
+from datetime import datetime
 
-from time import sleep
 
 # Create an Extractor by reading from the YAML file
 e = Extractor.from_yaml_file('venv/data/search_results.yml')
@@ -51,7 +56,7 @@ def startRead():
                     print("Saving Product: %s" % product['title'])
                     json.dump(product, outfile)
                     outfile.write("\n")
-                    # sleep(5)
+                    #sleep(5)
     pass
 
 
@@ -74,9 +79,11 @@ def getAsin():
 
 
 def getHistoricData():
+    start_date = timer()
+    print(start_date)
     with open('venv/data/search_results_output.jsonl', 'r') as json_file:
         json_list = list(json_file)
-    search_df = pd.DataFrame(columns=['asin','title','url','rating','reviews','price_day_call', 'search_url'])
+    search_df = pd.DataFrame(columns=['asin','title','url','rating','reviews','price_crape', 'search_url','crape_date'])
     df_iniciado = False
 
     for index, json_str in enumerate(json_list):
@@ -87,39 +94,48 @@ def getHistoricData():
         print("New Element")
         asin = re.search("B0[\d\w]{8}", str(result['url']))
 
-        print("asin -> " + asin.group())
-        print("title -> " + str(result['title']))
-        print("url -> " + str(result['url']))
-        print("rating -> " + str(result['rating']))
-        print("reviews -> " + str(result['reviews']))
-        print("price -> " + str(result['price']))
-        print("search_url -> " + str(result['search_url']))
+        # print("asin -> " + asin.group())
+        # print("title -> " + str(result['title']))
+        # print("url -> " + str(result['url']))
+        # print("rating -> " + str(result['rating']))
+        # print("reviews -> " + str(result['reviews']))
+        # print("price -> " + str(result['price']))
+        # print("search_url -> " + str(result['search_url']))
 
-        new_row ={
-            'asin':asin.group(),
-            'title':str(result['title']),
-            'url':str(result['url']),
-            'rating':str(result['rating']),
-            'reviews':str(result['reviews']),
-            'price':str(result['price']),
-            'search_url':str(result['search_url'])
-        }
+        #Eliminar los que contengan picasso en la url ya que son productos promocionados, que pueden no tener nada que ver
+        if "picassoRedirect" not in str(result['url']):
+            new_row ={
+                'asin':asin.group(),
+                'title':str(result['title']),
+                'url':str(result['url']),
+                'rating':str(result['rating']),
+                'reviews':str(result['reviews']),
+                'price_crape':str(result['price']),
+                'search_url':str(result['search_url']),
+                'crape_date': str(datetime.now().strftime("%m/%d/%Y"))
+            }
 
-        try:
-            json_response = amazonPriceRequest(asin.group())
-            json_normalized = json_normalize(data=json_response.json(), record_path='price_history',
-                                             meta=['asin', 'currency', 'price_type'])
-            if df_iniciado==False:
-                json_df = json_normalized
-                df_iniciado = True
-            else:
-                json_df = json_df.append(json_normalized, ignore_index=True, sort=False)
-            search_df = search_df.append(new_row, ignore_index=True)
-        except:
-            print("Response - KO")
+            try:
+                inter_date_start = timer()
+                json_response = amazonPriceRequest(asin.group())
+
+                json_normalized = json_normalize(data=json_response.json(), record_path='price_history',
+                                                 meta=['asin', 'currency', 'price_type'])
+                if df_iniciado==False:
+                    json_df = json_normalized
+                    df_iniciado = True
+                else:
+                    json_df = json_df.append(json_normalized, ignore_index=True, sort=False)
+                search_df = search_df.append(new_row, ignore_index=True)
+                inter_date_end = timer()
+                print(timedelta(seconds=inter_date_end - inter_date_start))
+            except:
+                print("Response - KO")
 
     df_merge = pd.merge(json_df,search_df, on='asin')
-    df_merge.to_csv(r'venv/data/data.csv',index=False,header=True)
+    df_merge.to_csv(r'venv/data/OSFPD.csv',index=False,header=True)
+    end_date = timer()
+    print(timedelta(seconds=end_date-start_date))
     pass
 
 def amazonPriceRequest(asin):
