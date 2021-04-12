@@ -10,6 +10,11 @@ La actividad ha sido realizada de manera coordinada por César Irnán Sillero y 
 
 ## Ficheros del código fuente
 
+La práctica se compone de los siguientes ficheros:
+  - main.py: Fichero del código fuente donde se ha desarrollado el scrape de la web de amazon para recuperar los id y demás información de los artículos y las llamadas a la API para obtener el histórico de precios
+  - search_results_output.jsonl: Json de resultados, cada uno en una línea, de cada producto
+  - search_results_urls: Listado de urls a analizar
+  - search_results.yml: Archivo de configuración para montar los json de salida y los elementos a buscar dentro del html de la consulta web
 
 ## Recursos
 
